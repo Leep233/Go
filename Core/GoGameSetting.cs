@@ -8,7 +8,7 @@ namespace Go.Core
 {
     public class GoGameSetting
     {
-        public ChessBoardMode BoardSize { get; set; }
+        public ChessBoardType BoardSize { get; set; }
 
         public float Komi { get; set; }
 

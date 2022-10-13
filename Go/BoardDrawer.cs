@@ -13,7 +13,7 @@ using System.Windows.Shapes;
 
 namespace Go
 {
-    public static class BoardDraw
+    public static class BoardDrawer
     {
         public readonly static SolidColorBrush BlackBrush = new SolidColorBrush(Colors.Black);
 

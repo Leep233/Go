@@ -7,27 +7,27 @@ namespace Go.Interfaces
     public interface IGOObserver<T_Stone>
     {
 
-        event Action<List<T_Stone>> OnStoneKilledEvent;
+        event Action<IEnumerable<T_Stone>> StoneKilledEvent;
 
-        event Action<T_Stone> OnMoveEvent;
+        event Action<T_Stone> PressedEvent;
         /// <summary>
         /// 分先
         /// </summary>
         /// <returns></returns>
         int EvenGame();
 
-        bool CanMove(T_Stone stone);
+       // bool Pressable(T_Stone stone);
 
-        bool ExistsInBlock(T_Stone stone, List<T_Stone> block);
+        bool ExistsInBlock(T_Stone stone, IEnumerable<T_Stone> block);
 
         List<T_Stone> FindSameBlock(T_Stone stone);
 
         List<List<T_Stone>> FindDifferentBlocks(T_Stone stone);
 
-        bool IsAlive(List<T_Stone> stones);
+        bool IsAlive(IEnumerable<T_Stone> stones);
 
-        bool ExistLiberty(T_Stone stone);
+        bool ExistLibertyFromAround(T_Stone stone);
 
-        bool Move(T_Stone chessPieces);
+        bool Press(T_Stone chessPieces);
     }
 }

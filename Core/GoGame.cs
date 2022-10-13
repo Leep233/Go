@@ -10,19 +10,27 @@ namespace Go.Core
     {
         public const int PlayerMaxCount = 2;
 
-        public ChessBoardMode BoardSize => Setting?.BoardSize ?? ChessBoardMode.None;
+        public ChessBoardType BoardSize => Setting?.BoardSize ?? ChessBoardType.None;
 
-        public event Action<List<Stone>> OnStoneKilledEvent;
+        public event Action<IEnumerable<Stone>> StoneKilledEvent;
 
-        public event Action<Stone> OnMoveEvent;
+        public event Action<Stone> PressedEvent;
 
         public IGOAnalysis<ChessBoard> SituationAnalyzer { get; private set; }
 
         public IGOObserver<Stone> Judge { get; set; }
 
-        public GoPlayer[] Players { get; set; }
+        private GoPlayer[] Players;
 
+        public void SetPlayers(params GoPlayer[] players)
+        {
+            Players = players;
 
+            for (int i = 0; i < Players.Length; i++)
+            {
+                Players[i].Judge = Judge;
+            }
+        }
 
         public GoGame(GoGameSetting setting) : base(setting)
         {
@@ -62,7 +70,7 @@ namespace Go.Core
         /// <returns></returns>
         public int[,] GetAnalysisForces()
         {
-            return SituationAnalyzer.Analysis(((Judge)Judge).GetChessBoard);
+            return SituationAnalyzer.Analysis(((Judge)Judge).ChessBoard);
         }
 
         /// <summary>
@@ -70,45 +78,42 @@ namespace Go.Core
         /// </summary>
         /// <param name="setting"></param>
         /// <exception cref="Exception"></exception>
-        public void Init(GoGameSetting setting = null)
+        public void Init(GoGameSetting setting = null, GoPlayer [] players = null)
         {
             if (setting != null)
                 Setting = setting;
 
             if (Setting is null) throw new Exception("Game Setting is Empty!");
 
-            if (Players is null || Players.Length != PlayerMaxCount) throw new Exception("Player's Count Error!");
+          //  if (Players is null || Players.Length != PlayerMaxCount) throw new Exception("Player's Count Error!");
 
             Judge = new Judge(Setting.BoardSize);
 
+            SetPlayers(players);
+
             SituationAnalyzer = new SituationAnalyzer();
 
-            Judge.OnStoneKilledEvent += OnStoneKilledEventCallback;
+            Judge.StoneKilledEvent += OnStoneKilledEventCallback;
 
-            Judge.OnMoveEvent += OnMoveEventCallback;
-
-            for (int i = 0; i < Players.Length; i++)
-            {
-                Players[i].MoveEvent += Judge.Move;
-            }
+            Judge.PressedEvent += OnMoveEventCallback;
 
         }
 
         private void OnMoveEventCallback(Stone stone)
         {
-            OnMoveEvent?.Invoke(stone);
+            PressedEvent?.Invoke(stone);
         }
 
-        private void OnStoneKilledEventCallback(List<Stone> stones)
+        private void OnStoneKilledEventCallback(IEnumerable<Stone> stones)
         {
-            OnStoneKilledEvent?.Invoke(stones);
+            StoneKilledEvent?.Invoke(stones);
         }
 
         public override void Start()
         {
-            int state = Judge.EvenGame();
+            //int state = Judge.EvenGame();
 
-            Players[state].StoneColor = StoneColor.Black;
+            //Players[state].StoneColor = StoneColor.Black;
 
             Console.WriteLine("Start");
 

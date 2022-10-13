@@ -3,18 +3,31 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Go"
+        xmlns:local="clr-namespace:Go" xmlns:panels="clr-namespace:Go.Views.Panels"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1200">
 
  
-    <Grid x:Name="grid">
-        <Menu>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0" VerticalAlignment="Center">
             <MenuItem Header="开始">
-                <MenuItem Header="开始游戏" Click="OnClickStartGameMenuItem"></MenuItem>
-                <MenuItem Header="局势预测" Click="MenuItem_Click"></MenuItem>
-               
+                <MenuItem Header="创建对局" Click="OnClickBuildFightButton"></MenuItem>
+                <MenuItem Header="局势预测" ></MenuItem>               
             </MenuItem>
         </Menu>
+        <Border Grid.Row="1" x:Name="chessBorder">
+            <panels:ChessboardPanel x:Name="chessboardPanle" Pressed="OnPressedChessboardCallback"></panels:ChessboardPanel>
+        </Border>
+
+        <Border Visibility="Collapsed"  Background="#2E2E2E"  Grid.Row="1" x:Name="gameSettingBorder" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+            <StackPanel>
+                <panels:GameSettingsPanel DataContext="{Binding GameSettings}" Padding="50 30" Width="600"></panels:GameSettingsPanel>
+                <Button Margin="10" Height="35" Width="120" Click="OnClickGameStartButton" Command="{Binding GameStartCommand}">开始对局</Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

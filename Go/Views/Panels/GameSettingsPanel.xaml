@@ -1,0 +1,70 @@
+﻿<UserControl x:Class="Go.Views.Panels.GameSettingsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Go.Views.Panels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">    
+    
+    <Border>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="1">
+                <StackPanel>
+
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock  VerticalAlignment="Center" Margin="5 0" Foreground="White">棋盘:</TextBlock>
+                        <ComboBox Foreground="Black" SelectedIndex="{Binding SelectedSize}" Grid.Column="1">
+                            <ComboBoxItem Content="9x9"></ComboBoxItem>
+                            <ComboBoxItem Content="13x13"></ComboBoxItem>
+                            <ComboBoxItem Content="19x19"></ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock  VerticalAlignment="Center" Margin="5 0" Foreground="White">贴目:</TextBlock>
+                        <TextBox Text="{Binding Komi}" Grid.Column="1" Margin="5 0" Foreground="Black"></TextBox>
+                        <TextBlock  Grid.Column="2"  VerticalAlignment="Center" Margin="5 0" Foreground="White">目</TextBlock>
+                    </Grid>                  
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock  VerticalAlignment="Center" Margin="5 0" Foreground="White">对局时间:</TextBlock>
+                        <ComboBox Foreground="Black" SelectedIndex="{Binding SelectedTime}" Grid.Column="1">
+                            <ComboBoxItem Content="30"></ComboBoxItem>
+                            <ComboBoxItem Content="60"></ComboBoxItem>
+                            <ComboBoxItem Content="120"></ComboBoxItem>
+                        </ComboBox>
+                        <TextBlock  Grid.Column="2"  VerticalAlignment="Center" Margin="5 0" Foreground="White">分钟</TextBlock>
+
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border>
+                <local:PlayerSettingPanel DataContext="{Binding Player01}"></local:PlayerSettingPanel>
+            </Border>
+            <Border Grid.Column="2">
+                <local:PlayerSettingPanel DataContext="{Binding Player02}"></local:PlayerSettingPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

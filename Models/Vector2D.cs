@@ -19,6 +19,12 @@ namespace Go.Models
             Vector2D v2 = (Vector2D)obj;
             return this.x == v2.x&& this.y == v2.y;
         }
+
+        public override int GetHashCode()
+        {          
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return $"{char.ConvertFromUtf32(x + ((x > 7) ? 66 : 65))}{y+1}";

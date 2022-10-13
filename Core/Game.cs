@@ -36,7 +36,6 @@ namespace Go.Core
             Started?.Invoke(this);
 
             CurrentState = GameState.Start;
-
         }
 
         protected virtual void OnStart() {}

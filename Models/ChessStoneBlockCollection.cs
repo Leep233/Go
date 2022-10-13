@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Go.Models
 {
-   public class ChessPiecesBlockCollection
+   public class ChessStoneBlockCollection
     {
-        public List<ChessPiecesBlock> Blocks { get; set; }
-        public ChessPiecesBlockCollection()
+        public List<ChessStoneBlock> Blocks { get; set; }
+        public ChessStoneBlockCollection()
         {
-            Blocks = new List<ChessPiecesBlock>();
+            Blocks = new List<ChessStoneBlock>();
         }
      
         public void Add(Stone chessPieces)
@@ -20,23 +20,23 @@ namespace Go.Models
             {
                 if (Blocks[i].IsChild(chessPieces)) 
                 { 
-                //判断是否存货
+                //判断是否存在
                 }
             }
             if (isExistsBlocks)
             {
-                ChessPiecesBlock block = new ChessPiecesBlock();
+                ChessStoneBlock block = new ChessStoneBlock();
                 block.Add(chessPieces);
                 Blocks.Add(block);
             }
         }
     }
 
-    public class ChessPiecesBlock 
+    public class ChessStoneBlock 
     {
         public List<Stone> Stones { get; set; }
 
-        public ChessPiecesBlock()
+        public ChessStoneBlock()
         {
             Stones = new List<Stone>();
         }

@@ -1,4 +1,5 @@
-﻿using Go.Models;
+﻿using Go.Interfaces;
+using Go.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,26 +8,29 @@ namespace Go.Core
 {
     public class GoPlayer:Player
     {
-        public event Func<Stone,bool> MoveEvent;
-
         public StoneColor StoneColor { get; set; } = StoneColor.White;
 
-        public GoPlayer(string name)
+        public GoPlayer(string name, IGOObserver<Stone> judge):base(judge)
         {
             Name = name;
         }
 
-        public override bool Move(object arg) 
+        public GoPlayer(string name, StoneColor color)
         {
-            bool canMove = false;
-            if (arg is Stone stone) 
-            {
-                stone.Color = StoneColor;
-                canMove = MoveEvent?.Invoke(stone) ?? false;
-            }
-           
-            return canMove;
+            Name = name;
+            StoneColor = color;
+        }
+
+        public override bool Press(object arg)
+        {
+            Vector2D position = (Vector2D)arg;
+
+            Stone stone = new Stone(position, StoneColor);
+
+            return base.Press(stone);
         }
 
     }
+
+
 }

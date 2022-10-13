@@ -3,6 +3,7 @@ using Go.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Go.Core
 {
@@ -13,79 +14,78 @@ namespace Go.Core
         /// </summary>
         public StoneColor CurrentColor { get; private set; }
 
-        private bool isPassed = false;
+        public event Action<IEnumerable<Stone>> StoneKilledEvent;
 
-        public event Action<List<Stone>> OnStoneKilledEvent;
-
-        public event Action<Stone> OnMoveEvent;
-
-        private ChessBoard _chessBoard;
-        public Judge(ChessBoardMode size)
+        public event Action<Stone> PressedEvent;
+        public ChessBoard ChessBoard { get; private set; }
+        public Judge(ChessBoardType size)
         {
-            _chessBoard = new ChessBoard(size);
+            ChessBoard = new ChessBoard(size);
+            CurrentColor = StoneColor.Black;
         }
 
-        public ChessBoard GetChessBoard => _chessBoard;
-
-        public bool CanMove(Stone stone)
+        /// <summary>
+        /// 判断四周是否存在相同的棋子
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="targetColor"></param>
+        /// <returns></returns>
+        public bool ExistSameColorFromAround(Vector2D pos, StoneColor targetColor)
         {
-            bool canMove = false;
+            return BorderDetection(pos, color => color == targetColor).state;
 
-            if (isPassed && stone.Color != CurrentColor)
-            {
-                return canMove;
-            }
-
-            Vector2D pos = stone.Position;
-
+            //左边
             int x = pos.x - 1;
             int y = pos.y;
-
             if (x >= 0)
             {
-                StoneColor color = _chessBoard.Board[x, y];
-                if (color == StoneColor.None || color == stone.Color) return true;
+                StoneColor color = ChessBoard.Stones[x, y];
+                if (color == targetColor) return true;
             }
+
             x = pos.x + 1;
-            if (x < _chessBoard.Size)
+            //右边
+            if (x < ChessBoard.Size)
             {
-                StoneColor color = _chessBoard.Board[x, y];
-                if (color == StoneColor.None || color == stone.Color) return true;
+                StoneColor color = ChessBoard.Stones[x, y];
+                if (color == targetColor) return true;
             }
+
+            //下边
             x = pos.x;
             y = pos.y - 1;
             if (y >= 0)
             {
-                StoneColor color = _chessBoard.Board[x, y];
-                if (color == StoneColor.None || color == stone.Color) return true;
+                StoneColor color = ChessBoard.Stones[x, y];
+                if (color == targetColor) return true;
             }
+
+            //上边
             y = pos.y + 1;
-            if (y < _chessBoard.Size)
+            if (y < ChessBoard.Size)
             {
-                StoneColor color = _chessBoard.Board[x, y];
-                if (color == StoneColor.None || color == stone.Color) return true;
+                StoneColor color = ChessBoard.Stones[x, y];
+                if (color == targetColor) return true;
             }
-
-            isPassed = false;
-
-            return canMove;
+            return false;
         }
 
-        public int EvenGame()
+        /// <summary>
+        /// 是否存在气
+        /// </summary>
+        /// <param name="stone"></param>
+        /// <returns></returns>
+        public bool ExistLibertyFromAround(Stone stone)
         {
-            CurrentColor = StoneColor.Black;
-            Random random = new Random();
-            return random.Next(0, 1);
-        }
 
-        public bool ExistLiberty(Stone stone)
-        {
+            return BorderDetection(stone.Position, color => color == StoneColor.None).state;
+
             int x = stone.Position.x + 1;
             int y = stone.Position.y;
 
-            if (x < _chessBoard.Size)
+            if (x < ChessBoard.Size)
             {
-                StoneColor color = _chessBoard.GetChessColor(x, y);
+                StoneColor color = ChessBoard.Stones[x, y];
                 if (color == StoneColor.None)
                     return true;
             }
@@ -94,7 +94,7 @@ namespace Go.Core
 
             if (x >= 0)
             {
-                StoneColor color = _chessBoard.GetChessColor(x, y);
+                StoneColor color = ChessBoard.Stones[x, y];
                 if (color == StoneColor.None)
                     return true;
             }
@@ -102,9 +102,9 @@ namespace Go.Core
             x = stone.Position.x;
             y = stone.Position.y + 1;
 
-            if (y < _chessBoard.Size)
+            if (y < ChessBoard.Size)
             {
-                StoneColor color = _chessBoard.GetChessColor(x, y);
+                StoneColor color = ChessBoard.Stones[x, y];
                 if (color == StoneColor.None)
                     return true;
             }
@@ -113,18 +113,84 @@ namespace Go.Core
 
             if (y >= 0)
             {
-                StoneColor color = _chessBoard.GetChessColor(x, y);
+                StoneColor color = ChessBoard.Stones[x, y];
                 if (color == StoneColor.None)
                     return true;
             }
             return false;
         }
 
-        public bool ExistsInBlock(Stone stone, List<Stone> block)
+        /// <summary>
+        /// 边缘检测 （检测目标上下左右的情况）
+        /// </summary>
+        /// <param name="position">需要检测的坐标</param>
+        /// <param name="conditions">检测的条件</param>
+        /// <returns></returns>
+        public (bool state,Vector2D point) BorderDetection(Vector2D position, Func<StoneColor, bool> conditions) 
+        {
+            //左边
+            int x = position.x - 1;
+            int y = position.y;
+
+            if (x >= 0)
+            {  
+                if (conditions(ChessBoard.Stones[x, y])) return (true,new Vector2D(x,y));
+            }
+
+            x = position.x + 1;
+            //右边
+            if (x < ChessBoard.Size)
+            {
+                if (conditions(ChessBoard.Stones[x, y])) return (true, new Vector2D(x, y));
+            }
+
+            //下边
+            x = position.x;
+            y = position.y - 1;
+            if (y >= 0)
+            {
+                if (conditions(ChessBoard.Stones[x, y])) return (true, new Vector2D(x, y));
+            }
+
+            //上边
+            y = position.y + 1;
+            if (y < ChessBoard.Size)
+            {
+                if (conditions(ChessBoard.Stones[x, y])) return  (true, new Vector2D(x, y));
+            }
+            return (false, new Vector2D(-1, -1));
+        }
+
+
+        /// <summary>
+        /// 分先
+        /// </summary>
+        /// <returns></returns>
+        public int EvenGame()
+        {
+            CurrentColor = StoneColor.Black;
+            Random random = new Random();
+            return random.Next(0, 1);
+        }
+
+ 
+
+        /// <summary>
+        /// 是否属于一片棋
+        /// </summary>
+        /// <param name="stone"></param>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        public bool ExistsInBlock(Stone stone, IEnumerable<Stone> block)
         {
             return block.Contains(stone);
         }
 
+        /// <summary>
+        /// 寻找不同一片的棋
+        /// </summary>
+        /// <param name="startStone"></param>
+        /// <returns></returns>
         public List<List<Stone>> FindDifferentBlocks(Stone startStone)
         {
             List<List<Stone>> blocks = new List<List<Stone>>();
@@ -143,49 +209,18 @@ namespace Go.Core
                     break;
             }
 
-            Vector2D pos = startStone.Position;
+            Vector2D position = startStone.Position;
 
-            int x = pos.x - 1;
+            //1.检测到相同颜色的棋子 就添加到列表内
 
-            int y = pos.y;
+            var detResult = BorderDetection(position, c => c == color);
 
-            if (x >= 0)
+            if (detResult.state) 
             {
-                if (_chessBoard.Board[x, y] == color)
-                {
-                    Stone stone = new Stone() { Position = new Vector2D(x, y), Color = color };
-                    stones.Add(stone);
-                }
+                Stone stone = new Stone() { Position = detResult.point, Color = color };
+                stones.Add(stone);
             }
 
-            x = pos.x + 1;
-            if (x < _chessBoard.Size)
-            {
-                if (_chessBoard.Board[x, y] == color)
-                {
-                    Stone stone = new Stone() { Position = new Vector2D(x, y), Color = color };
-                    stones.Add(stone);
-                }
-            }
-            x = pos.x;
-            y = pos.y - 1;
-            if (y >= 0)
-            {
-                if (_chessBoard.Board[x, y] == color)
-                {
-                    Stone stone = new Stone() { Position = new Vector2D(x, y), Color = color };
-                    stones.Add(stone);
-                }
-            }
-            y = pos.y + 1;
-            if (y < _chessBoard.Size)
-            {
-                if (_chessBoard.Board[x, y] == color)
-                {
-                    Stone stone = new Stone() { Position = new Vector2D(x, y), Color = color };
-                    stones.Add(stone);
-                }
-            }
 
             bool isExsits = false;
 
@@ -215,13 +250,13 @@ namespace Go.Core
         }
 
         /// <summary>
-        /// 
+        /// 寻找同一片棋
         /// </summary>
         /// <param name="startStone"></param>
         /// <returns></returns>
         public List<Stone> FindSameBlock(Stone startStone)
         {
-            List<Stone> block = new List<Stone>() { startStone };
+            List<Stone> block = new List<Stone>() {startStone};
 
             Queue<Stone> sticker = new Queue<Stone>();
 
@@ -243,7 +278,7 @@ namespace Go.Core
 
                 if (x >= 0)
                 {
-                    if (_chessBoard.Board[x, y] == target.Color)
+                    if (ChessBoard.Stones[x, y] == target.Color)
                     {
                         Stone stone = new Stone() { Position = new Vector2D(x, y), Color = target.Color };
 
@@ -256,9 +291,10 @@ namespace Go.Core
                 }
 
                 x = pos.x + 1;
-                if (x < _chessBoard.Size)
+
+                if (x < ChessBoard.Size)
                 {
-                    if (_chessBoard.Board[x, y] == target.Color)
+                    if (ChessBoard.Stones[x, y] == target.Color)
                     {
                         Stone stone = new Stone() { Position = new Vector2D(x, y), Color = target.Color };
 
@@ -273,7 +309,7 @@ namespace Go.Core
                 y = pos.y - 1;
                 if (y >= 0)
                 {
-                    if (_chessBoard.Board[x, y] == target.Color)
+                    if (ChessBoard.Stones[x, y] == target.Color)
                     {
                         Stone stone = new Stone() { Position = new Vector2D(x, y), Color = target.Color };
 
@@ -285,9 +321,9 @@ namespace Go.Core
                     }
                 }
                 y = pos.y + 1;
-                if (y < _chessBoard.Size)
+                if (y < ChessBoard.Size)
                 {
-                    if (_chessBoard.Board[x, y] == target.Color)
+                    if (ChessBoard.Stones[x, y] == target.Color)
                     {
                         Stone stone = new Stone() { Position = new Vector2D(x, y), Color = target.Color };
 
@@ -300,102 +336,162 @@ namespace Go.Core
                 }
 
 
-
             } while (sticker.Count > 0);
 
 
             return block;
         }
 
-        public bool IsAlive(List<Stone> stones)
+        /// <summary>
+        /// 是否是活棋
+        /// </summary>
+        /// <param name="stones"></param>
+        /// <returns></returns>
+        public virtual bool IsAlive(IEnumerable<Stone> stones)
         {
             bool isAlive = false;
-            for (int i = 0; i < stones.Count; i++)
+
+            foreach (Stone stone in stones)
             {
-                Stone chess = stones[i];
-                if (ExistLiberty(chess)) return true;
-            }
-            return isAlive;
-        }
-
-        public bool Move(Stone chessPieces)
-        {
-            Vector2D pos = chessPieces.Position;
-
-            bool isSucc = false;
-
-            if (_chessBoard.Board[pos.x, pos.y] != StoneColor.None) return isSucc;
-
-            if (!CanMove(chessPieces)) return false;
-
-            _chessBoard.Board[pos.x, pos.y] = chessPieces.Color;
-
-            List<Stone> block = FindSameBlock(chessPieces);
-
-            isSucc = IsAlive(block);
-
-            //Debug.WriteLine(isSucc);
-
-            List<List<Stone>> blocks = FindDifferentBlocks(chessPieces);
-
-            Debug.WriteLine($"作为敌人数：{blocks.Count}");
-
-            int killCount = 0;
-
-            List<Stone> killStones = new List<Stone>();
-
-            for (int i = 0; i < blocks.Count; i++)
-            {
-                if (!IsAlive(blocks[i]))
+                if (ExistLibertyFromAround(stone))
                 {
-                    killCount++;
-                    killStones.AddRange(blocks[i]);
+                    isAlive = true;
+                    break;
                 }
             }
 
-            for (int i = 0; i < killStones.Count; i++)
-            {
-                Vector2D V2 = killStones[i].Position;
+            return isAlive;
+        }
 
-                _chessBoard.Board[V2.x, V2.y] = StoneColor.None;
+        public virtual void OnStoneKilled(IEnumerable<Stone> killedStones, int blocks)
+        {
+            int killCount = 0;
+
+            foreach (var stones in killedStones)
+            {
+                Vector2D V2 = stones.Position;
+
+                ChessBoard.Stones[V2.x, V2.y] = StoneColor.None;
+
+                killCount++;
             }
 
-            if (killStones.Count > 0)
+            Debug.WriteLine($"杀死{blocks}块， 杀死敌人数：{killCount}");
+
+            StoneKilledEvent?.Invoke(killedStones);
+        }
+
+        /// <summary>
+        /// 落子
+        /// </summary>
+        /// <param name="stone"></param>
+        /// <returns>是否落子成功</returns>
+        public bool Press(Stone stone)
+        {
+            bool pressable = false;
+
+            Vector2D position = stone.Position;
+
+            StoneColor stoneColor = stone.Color;
+
+            if (stoneColor != CurrentColor) 
             {
-                OnStoneKilledEvent?.Invoke(killStones);
-                Debug.WriteLine($"杀死{killCount}块， 杀死敌人数：{killStones.Count}");
+                Debug.WriteLine($"不是 {stoneColor} 的回合");
+
+                return pressable = false;
             }
 
+            //1.坐标上 有子 不能下
 
-            ////获取到对应颜色的棋子块集合
-            //ChessPiecesBlockCollection stoneCollection = _chessesBlock[chessPieces.Color];
-
-            //stoneCollection.Add(chessPieces);
-
-            if (isSucc)
+            if (ChessBoard.GetStoneColor(position) != StoneColor.None)
             {
-                _chessBoard.Board[pos.x, pos.y] = chessPieces.Color;
+                Debug.WriteLine($"此处已有棋子:{position}");
 
-                switch (chessPieces.Color)
+                return pressable = false;
+            }
+
+            //2.判断4周是否存在气
+            if (BorderDetection(position, color => color == StoneColor.None).state)
+            {
+                pressable = true;
+
+            } else 
+            {
+                //3.判断四周是否有同色棋子
+                if (!BorderDetection(position, color => color == stoneColor).state) 
                 {
-  
+                    Debug.WriteLine("禁入点");
+
+                    return pressable = false;
+                }
+            }
+
+
+            //这里暂时将坐标位置 设置成棋子，便于后面的检测，如果检测不通过需要将这个棋子的位置 恢复原来的状态
+            StoneColor stoneStatus = ChessBoard.Stones[position.x, position.y];
+
+            ChessBoard.Stones[position.x, position.y] = stoneColor;
+
+            //4.判断是否能杀死对方的棋子
+            List<List<Stone>> enemyBlocks = FindDifferentBlocks(stone);
+
+            int killedBlockNumber = 0;
+
+            List<Stone> killedStones = new List<Stone>();
+
+            for (int i = 0; i < enemyBlocks.Count; i++)
+            {
+                if (!IsAlive(enemyBlocks[i]))
+                {
+                    killedBlockNumber++;
+                    killedStones.AddRange(enemyBlocks[i]);
+                }
+            }
+
+            if (killedBlockNumber > 0) 
+            {
+                OnStoneKilled(killedStones, killedBlockNumber);
+                pressable = true;
+
+            } else 
+            {
+                //5.四周有自己的棋子 需要判断的如果下这个位置会不会导致这片棋一口气都没有（自杀）
+
+                List<Stone> sameBlock = FindSameBlock(stone);
+
+                pressable = IsAlive(sameBlock);
+              
+            }
+
+            if (pressable)
+            {
+                ChessBoard.Stones[position.x, position.y] = stone.Color;
+
+                switch (stone.Color)
+                {
+
                     case StoneColor.Black:
                         CurrentColor = StoneColor.White;
                         break;
                     case StoneColor.White:
                         CurrentColor = StoneColor.Black;
-                        break;    
-                }             
+                        break;
+                }
 
-                OnMoveEvent?.Invoke(chessPieces);
+                PressedEvent?.Invoke(stone);
             }
             else
             {
-                _chessBoard.Board[pos.x, pos.y] = StoneColor.None;
+                ChessBoard.Stones[position.x, position.y] = StoneColor.None;
             }
 
-            return isSucc;
+            //////获取到对应颜色的棋子块集合
+            //ChessStoneBlockCollection stoneCollection = _chessesBlock[Color];
 
+            //stoneCollection.Add(chessPieces);
+
+
+            return pressable;
         }
     }
 }

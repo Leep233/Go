@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Go.Models
 {
-    public enum ChessBoardMode { 
+    public enum ChessBoardType { 
         None,
         Size_9x9    =9 ,
         Size_13x13  =13,
@@ -13,24 +13,31 @@ namespace Go.Models
 
     public class ChessBoard
     {
-        public ChessBoardMode Mode { get; private set; }
-        public StoneColor[,] Board { get;private set; }
-
+        /// <summary>
+        /// 棋盘大小
+        /// </summary>
         public int Size { get; private set; }
 
-        public ChessBoard(ChessBoardMode sizeMode)
+        /// <summary>
+        /// 棋盘类型
+        /// </summary>
+        public ChessBoardType BoardType { get; private set; }
+        
+        /// <summary>
+        /// 棋盘落子点
+        /// </summary>
+        public StoneColor[,] Stones { get;private set; }
+
+        public ChessBoard(ChessBoardType type)
         {
-            Mode = sizeMode;
-            Size = (int)sizeMode;
-            Board = new StoneColor[Size, Size];
+            BoardType = type;
+            Size = (int)type;
+            Stones = new StoneColor[Size, Size];
         }
 
-        public StoneColor GetChessColor(int x, int y) {
-            return Board[x, y];
-
-
+        public StoneColor GetStoneColor(Vector2D vector) {
+            return Stones[vector.x, vector.y];
         }
-
     }
 
 }

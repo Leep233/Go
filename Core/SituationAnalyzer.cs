@@ -35,8 +35,8 @@ namespace Go.Core
             {
                 for (int j = 0; j < chessBoard.Size; j++)
                 {
-                    if(chessBoard.Board[i, j] == StoneColor.Black || chessBoard.Board[i, j] == StoneColor.White)
-                        AnlysisStoneForces(new Stone() {Position= new Vector2D(i,j),Color= chessBoard.Board[i, j] }, corners, ref forces);
+                    if(chessBoard.Stones[i, j] == StoneColor.Black || chessBoard.Stones[i, j] == StoneColor.White)
+                        AnlysisStoneForces(new Stone() {Position= new Vector2D(i,j),Color= chessBoard.Stones[i, j] }, corners, ref forces);
                 }
             }          
 

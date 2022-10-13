@@ -4,32 +4,54 @@ using System.Text;
 
 namespace Go.Models
 {
-    public enum StoneColor 
-    {     
+    public enum StoneColor
+    {
         None,
         Black,
-        White    
+        White
     }
 
-
-
-  public  class Stone
+    public class Stone
     {
-
         public StoneColor Color { get; set; }
 
-        public Vector2D  Position { get; set; }
+        public Vector2D Position { get; set; }
+
+        public Stone()
+        {
+
+        }
+
+        public Stone(Vector2D position, StoneColor color)
+        {
+            Color = color;  
+            Position = position;
+        }
+        public Stone(int x,int y, StoneColor color)
+        {
+            Color = color;
+            Position = new Vector2D(x,y);
+        }
 
         public override bool Equals(object obj)
         {
-            Stone s1= obj as Stone;
+            if (obj is Stone stone)
+            {
+                if (stone.Color != this.Color) return false;
 
+                if (!this.Position.Equals(stone.Position)) return false;
 
-            if (s1.Color != this.Color) return false;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-            if (!this.Position.Equals( s1.Position)) return false;
-
-            return true;
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public override string ToString()
@@ -38,7 +60,7 @@ namespace Go.Models
 
             switch (Color)
             {
-              
+
                 case StoneColor.Black:
                     str = "B";
                     break;
